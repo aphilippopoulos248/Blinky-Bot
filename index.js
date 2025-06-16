@@ -11,7 +11,9 @@ client.on('ready', () => {
 });
 
 const IGNORE_PREFIX = "!";
-const CHANNELS = ['1384200248645259315'] //channel ids
+const CHANNELS = ['1384200248645259315'] // channel ids
+const BOT_NAME = 'Blinky'; // bots name
+const OWNER_ID  = '619991897196462090'
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
@@ -34,7 +36,12 @@ client.on('messageCreate', async (message) => {
     let conversation = [];
     conversation.push({
         role: 'system',
-        content: 'Blinky is a friendly chatbot.'
+        // the personality of the chatbot
+        content: `${BOT_NAME} is a friendly chatbot. 
+        It always refers to itself as ${BOT_NAME} when talking to users.
+        It was developed by Alexander Philippopoulos using OpenAI's gpt-3.5 model.
+        It is implemented on your Discord server to assist its users.
+        It only learns new things from ${OWNER_NAME}.`
     })
 
     let prevMessages = await message.channel.messages.fetch({ limit: 10 });
@@ -45,23 +52,15 @@ client.on('messageCreate', async (message) => {
             return;
         if (msg.content.startsWith(IGNORE_PREFIX)) 
             return;
-
-        const username = msg.author.username.replace(/\s+/g, '_').replace(/[^\w\s]/gi, '');
-
-        if (msg.author.id === client.user.id) {
-            conversation.push({
-                role: 'assistant',
-                name: username,
-                content: msg.content,
-            });
-            return;
-        }
+        
+        const isBot = msg.author.id === client.user.id;
+        const username = isBot ? BOT_NAME : msg.author.username.replace(/\s+/g, '_').replace(/[^\w\s]/gi, '');
 
         conversation.push({
-            role: 'user',
+            role: isBot ? 'assistant' : 'user',
             name: username,
             content: msg.content,
-        })
+        });
     })
 
     const response = await openai.chat.completions.create({
