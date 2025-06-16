@@ -1,5 +1,4 @@
 require('dotenv/config');
-console.log("DISCORD TOKEN:", process.env.TOKEN?.slice(0, 10) || "MISSING");
 
 const { Client } = require('discord.js');
 const { OpenAI } = require('openai');
