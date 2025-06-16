@@ -14,8 +14,6 @@ client.on('ready', () => {
 const IGNORE_PREFIX = "#";
 const CHANNELS = ['1384200248645259315'] // channel ids
 const BOT_NAME = 'Blinky'; // bots name
-// const OWNER_ID  = '619991897196462090'
-// const OWNER_NAME = 'aphilippopoulos'
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
@@ -71,14 +69,6 @@ client.on('messageCreate', async (message) => {
         
         const isBot = msg.author.id === client.user.id;
         const username = isBot ? BOT_NAME : msg.author.username.replace(/\s+/g, '_').replace(/[^\w\s]/gi, '');
-
-        //  // Check if the message is trying to teach the bot
-        // const isTryingToTeach = /^blinky,?\s*(remember|learn|from now on|note|you should)/i.test(msg.content);
-
-        //  // Block "learning" messages unless they are from you
-        // if (isTryingToTeach && msg.author.name !== OWNER_NAME) {
-        //     return message.reply("Sorry, I only learn new things from my creator.");
-        // }
 
         conversation.push({
             role: isBot ? 'assistant' : 'user',
