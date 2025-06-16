@@ -13,7 +13,8 @@ client.on('ready', () => {
 const IGNORE_PREFIX = "!";
 const CHANNELS = ['1384200248645259315'] // channel ids
 const BOT_NAME = 'Blinky'; // bots name
-const OWNER_ID  = '619991897196462090'
+// const OWNER_ID  = '619991897196462090'
+// const OWNER_NAME = 'aphilippopoulos'
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
@@ -40,8 +41,7 @@ client.on('messageCreate', async (message) => {
         content: `${BOT_NAME} is a friendly chatbot. 
         It always refers to itself as ${BOT_NAME} when talking to users.
         It was developed by Alexander Philippopoulos using OpenAI's gpt-3.5 model.
-        It is implemented on your Discord server to assist its users.
-        It only learns new things from ${OWNER_NAME}.`
+        It is implemented on your Discord server to assist its users.`
     })
 
     let prevMessages = await message.channel.messages.fetch({ limit: 10 });
@@ -55,6 +55,14 @@ client.on('messageCreate', async (message) => {
         
         const isBot = msg.author.id === client.user.id;
         const username = isBot ? BOT_NAME : msg.author.username.replace(/\s+/g, '_').replace(/[^\w\s]/gi, '');
+
+        //  // Check if the message is trying to teach the bot
+        // const isTryingToTeach = /^blinky,?\s*(remember|learn|from now on|note|you should)/i.test(msg.content);
+
+        //  // Block "learning" messages unless they are from you
+        // if (isTryingToTeach && msg.author.name !== OWNER_NAME) {
+        //     return message.reply("Sorry, I only learn new things from my creator.");
+        // }
 
         conversation.push({
             role: isBot ? 'assistant' : 'user',
