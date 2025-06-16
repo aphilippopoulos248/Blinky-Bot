@@ -10,7 +10,7 @@ client.on('ready', () => {
     console.log('the bot is online');
 });
 
-const IGNORE_PREFIX = "!";
+const IGNORE_PREFIX = "#";
 const CHANNELS = ['1384200248645259315'] // channel ids
 const BOT_NAME = 'Blinky'; // bots name
 // const OWNER_ID  = '619991897196462090'
@@ -28,6 +28,21 @@ client.on('messageCreate', async (message) => {
         return;
     if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id))
         return;
+
+    if (message.content === '!clear') {
+        const channel = message.channel;
+        try {
+            const messages = await channel.messages.fetch();
+            const deletable = messages.filter(msg => (Date.now() - msg.createdTimestamp) < 14 * 24 * 60 * 60 * 1000);
+
+            await channel.bulkDelete(deletable, true);
+            await channel.send(`🧹 Cleared all messages.`)
+                .then(msg => setTimeout(() => msg.delete(), 3000));
+        } catch (err) {
+            console.error('Clear Error:', err);
+            message.reply("❌ I couldn't delete messages.");
+        }
+    }
 
     await message.channel.sendTyping();
     const sendTypingInterval = setInterval(() => {
@@ -87,7 +102,7 @@ client.on('messageCreate', async (message) => {
 
     for (let i = 0; i < responseMessage.length; i += chunkSizeLimit) {
         const chunk = responseMessage.substring(i, i + chunkSizeLimit);
-        await message.reply(chunk);
+        await message.channel.send(chunk);
     }
 });
 
