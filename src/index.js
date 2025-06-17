@@ -16,9 +16,8 @@ client.on('ready', () => {
 });
 
 // constants
-const IGNORE_PREFIX = "#"; // symbol for bot to ignore message
-const CHANNELS = ['1384200248645259315'] // channel ids
 const BOT_NAME = 'Blinky'; // bots name
+const CHANNELS = ['1384200248645259315', '1384585158455332967'] // channel ids
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
@@ -62,22 +61,26 @@ const userWarnings = new Map();
 // bot messaging functionality
 client.on('messageCreate', async (message) => {
     console.log(message.content);
+
+    // return conditions
     if (message.author.bot)
-        return;
-    if (message.content.startsWith(IGNORE_PREFIX))
         return;
     if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id))
         return;
     if (!message.guild)
         return;
 
+    // prefix needed to speak to speak to bot
+    const botPrefix = message.content.startsWith('!');
 
     // typing effect
-    await message.channel.sendTyping();
-    const sendTypingInterval = setInterval(() => {
-        message.channel.sendTyping();
-    }, 5000);
-
+    let sendTypingInterval;
+    if (botPrefix) {
+        await message.channel.sendTyping();
+        sendTypingInterval = setInterval(() => {
+            message.channel.sendTyping();
+        }, 5000);
+    }
 
     // moderating vulgar speach
     if (message.content === '!enableModeration') {
@@ -113,7 +116,34 @@ client.on('messageCreate', async (message) => {
 
         // escalate action if warnings exceed threshold
         if (warnings >= 3) {
-            message.reply(`🚫 ${username} has reached the harassment warning limit. Further actions may be taken.`);
+            const flaggedRoleName = 'Flagged';
+            let flaggedRole = message.guild.roles.cache.find(r => r.name.toLowerCase() === flaggedRoleName.toLowerCase());
+
+            // Create the role if it doesn't exist
+            if (!flaggedRole) {
+                try {
+                    flaggedRole = await message.guild.roles.create({
+                        name: flaggedRoleName,
+                        color: 'Red',
+                        reason: 'Assigned to users who surpassed harassment warnings'
+                    });
+                    console.log(`Created role "${flaggedRoleName}"`);
+                } catch (error) {
+                    console.error(`Failed to create role "${flaggedRoleName}":`, error);
+                    return;
+                }
+            }
+
+            // Assign the role to the offending member
+            try {
+                const member = message.guild.members.cache.get(userId);
+                if (!member.roles.cache.has(flaggedRole.id)) {
+                    await member.roles.add(flaggedRole);
+                    message.reply(`🚩 ${username} has been flagged. Further actions may be taken.`);
+                }
+            } catch (err) {
+                console.error(`Failed to flag ${username}:`, err);
+            }
         }
 
         clearInterval(sendTypingInterval);
@@ -144,7 +174,7 @@ client.on('messageCreate', async (message) => {
     const roles = message.member.roles.cache
         .filter(role => role.name !== '@everyone') // exclude @everyone
         .map(role => role.name);
-    
+
 
     // configuring chatbot personality and conversation
     let conversation = [];
@@ -155,7 +185,8 @@ client.on('messageCreate', async (message) => {
         It does not attempt to access or infer private user data. 
         Here are the current user's roles: [${roles.join(', ')}]. 
         Only answer questions using this visible information.
-        Can manage server roles. Can moderate hate speech`
+        Can manage server roles. 
+        Can moderate hate speech. Does not tolerate racism, sexism, homophobism, xenophobism, and any kind of hate speech.`
     })
 
 
@@ -165,8 +196,6 @@ client.on('messageCreate', async (message) => {
 
     prevMessages.forEach((msg) => {
         if (msg.author.bot && msg.author.id !== client.user.id)
-            return;
-        if (msg.content.startsWith(IGNORE_PREFIX))
             return;
 
         // fetching bot and username of the user
@@ -243,31 +272,32 @@ client.on('messageCreate', async (message) => {
         return;
     };
 
-    // using openai api key for chatbots model
-    const response = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: conversation,
-    }).catch((error) => console.error('Blinky Error:\n', error));
+    if (botPrefix) {
+        // using openai api key for chatbots model
+        const response = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: conversation,
+        }).catch((error) => console.error('Blinky Error:\n', error));
 
-    // clearing typing interval after message has been generated
-    clearInterval(sendTypingInterval);
-    if (!response) {
-        message.reply("I'm having some trouble processing your request");
-        return;
+        // clearing typing interval after message has been generated
+        clearInterval(sendTypingInterval);
+        if (!response) {
+            message.reply("I'm having some trouble processing your request");
+            return;
+        }
+
+        // giving best response from gpt model
+        const responseMessage = response.choices[0].message.content;
+        const chunkSizeLimit = 2000;
+
+        for (let i = 0; i < responseMessage.length; i += chunkSizeLimit) {
+            const chunk = responseMessage.substring(i, i + chunkSizeLimit);
+            await message.channel.send(chunk);
+        }
     }
-
-    // giving best response from gpt model
-    const responseMessage = response.choices[0].message.content;
-    const chunkSizeLimit = 2000;
-
-    for (let i = 0; i < responseMessage.length; i += chunkSizeLimit) {
-        const chunk = responseMessage.substring(i, i + chunkSizeLimit);
-        await message.channel.send(chunk);
+    else {
+        clearInterval(sendTypingInterval);
     }
-    // const botMember = message.guild.members.cache.get(client.user.id);
-    // const botPerms = message.channel.permissionsFor(botMember);
-
-    // console.log(`Bot permissions in channel "${message.channel.name}":`, botPerms.toArray());
 });
 
 // using discord bot api token
