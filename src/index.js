@@ -24,6 +24,9 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
 })
 
+// parameters
+let moderation = false;
+
 // adding 'member' role to anyone who joins the server
 // welcoming new user to the server
 client.on('guildMemberAdd', async (member) => {
@@ -68,20 +71,35 @@ client.on('messageCreate', async (message) => {
     if (!message.guild)
         return;
 
+
     // typing effect
     await message.channel.sendTyping();
     const sendTypingInterval = setInterval(() => {
         message.channel.sendTyping();
     }, 5000);
 
+
     // moderating vulgar speach
-    const moderation = await openai.moderations.create({
+    if (message.content === '!enableModeration') {
+        moderation = true;
+        message.reply(`🚨 Moderation enabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+    else if (message.content === '!disableModeration') {
+        moderation = false;
+        message.reply(`🚫 Moderation disabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
+    const moderator = await openai.moderations.create({
         input: message.content
     });
-    const flagged = moderation.results[0].flagged;
-    const categories = moderation.results[0].categories;
+    const flagged = moderator.results[0].flagged;
+    const categories = moderator.results[0].categories;
 
-    if (flagged && categories.harassment) {
+    if (moderation && flagged && categories.harassment) {
         const userId = message.author.id;
         const username = message.author.username;
 
@@ -102,6 +120,7 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
+
     // clear all messages
     if (message.content === '!clear') {
         const channel = message.channel;
@@ -120,10 +139,12 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
+
     // fetching user roles
     const roles = message.member.roles.cache
         .filter(role => role.name !== '@everyone') // exclude @everyone
         .map(role => role.name);
+    
 
     // configuring chatbot personality and conversation
     let conversation = [];
@@ -134,8 +155,9 @@ client.on('messageCreate', async (message) => {
         It does not attempt to access or infer private user data. 
         Here are the current user's roles: [${roles.join(', ')}]. 
         Only answer questions using this visible information.
-        Can manage server roles.`
+        Can manage server roles. Can moderate hate speech`
     })
+
 
     // fetching previous messages to chatbot memory
     let prevMessages = await message.channel.messages.fetch({ limit: 10 });
@@ -158,6 +180,8 @@ client.on('messageCreate', async (message) => {
         });
     });
 
+
+    // function to add or remove role
     async function modifyRole(message, action) {
         // must be server manager to run this command
         if (!message.member.permissions.has('ManageRoles') && !message.member.permissions.has('Administrator')) {
@@ -208,13 +232,13 @@ client.on('messageCreate', async (message) => {
     };
 
     // command to add role
-    if (message.content.startsWith('!addrole-')) {
+    if (message.content.startsWith('!addRole-')) {
         await modifyRole(message, 'add');
         return;
     };
 
     // command to remove role
-    if (message.content.startsWith('!removerole-')) {
+    if (message.content.startsWith('!removeRole-')) {
         await modifyRole(message, 'remove');
         return;
     };
