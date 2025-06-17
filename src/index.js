@@ -99,8 +99,10 @@ client.on('messageCreate', async (message) => {
     });
 
     // adding 'member' role to anyone who joins the server
+    // welcoming new user to the server
     client.on('guildMemberAdd', async (member) => {
         const roleName = 'member';
+        const welcomeChannelId = '1384585158455332967';
 
         // Find role by name (case-insensitive)
         const role = member.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
@@ -109,15 +111,28 @@ client.on('messageCreate', async (message) => {
             return;
         }
 
+        // find welcome channel from id
+        const welcomeChannel = member.guild.channels.cache.get(welcomeChannelId);
+        if (!welcomeChannel || !welcomeChannel.isTextBased()) {
+            console.error(`Welcome channel "${welcomeChannel}" not found in server`);
+            return;
+        }
+
         try {
             await member.roles.add(role);
             console.log(`Assigned role "${role.name}" to new member "${member.user.username}".`);
+            welcomeChannel.send(`🎉 Welcome to the server, <@${member.id}>`);
         } catch (error) {
             console.error(`Failed to assign role to ${member.user.username}:`, error);
         }
     });
 
     async function modifyRole(message, action) {
+        // must be server manager to run this command
+        if (!message.member.permissions.has('ManageRoles') && !message.member.permissions.has('Administrator')) {
+            message.reply("You don't have permission to modify roles.");
+            return;
+        }
         // action should be either 'add' or 'remove'
         const parts = message.content.split('-');
         if (parts.length !== 3) {
