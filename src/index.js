@@ -26,17 +26,23 @@ const openai = new OpenAI({
 })
 
 // commands
+const clearCmd = '!clear';
 const addRoleCmd = '!addRole-';
 const removeRoleCmd = '!removeRole-';
-const enableModerationCmd = '!enableModeration'
-const disableModerationCmd = '!disableModeration'
+const enableModerationCmd = '!enableModeration';
+const disableModerationCmd = '!disableModeration';
+const enableWelcomeCmd = '!enableWelcome';
+const disableWelcomeCmd = '!disableWelcome';
 
 // parameters
 let moderation = false;
+let welcome = false;
 
 // function for when a new user joins
 const memberJoinedHandler = require('./memberJoined');
-memberJoinedHandler(client);
+if (welcome) {
+    memberJoinedHandler(client);
+}
 
 // bot messaging functionality
 client.on('messageCreate', async (message) => {
@@ -62,6 +68,20 @@ client.on('messageCreate', async (message) => {
         }, 5000);
     }
 
+    // enable welcome messages
+    if (message.content === enableWelcomeCmd) {
+        welcome = true;
+        message.reply(`🤗 Welcome enabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+    else if (message.content === disableWelcomeCmd) {
+        welcome = false;
+        message.reply(`😢 Welcome disabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
     // enable or disable moderation commands
     if (message.content === enableModerationCmd) {
         moderation = true;
@@ -85,7 +105,7 @@ client.on('messageCreate', async (message) => {
 
 
     // clear all messages
-    if (message.content === '!clear') {
+    if (message.content === clearCmd) {
         const channel = message.channel;
         try {
             const messages = await channel.messages.fetch();
