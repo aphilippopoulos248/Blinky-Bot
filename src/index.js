@@ -56,9 +56,6 @@ client.on('guildMemberAdd', async (member) => {
     }
 });
 
-// user warnings
-const userWarnings = new Map();
-
 // bot messaging functionality
 client.on('messageCreate', async (message) => {
     console.log(message.content);
