@@ -27,8 +27,7 @@ const openai = new OpenAI({
 // parameters
 let moderation = false;
 
-// adding 'member' role to anyone who joins the server
-// welcoming new user to the server
+// function for when a new user joins
 const memberJoinedHandler = require('./memberJoined');
 memberJoinedHandler(client);
 
