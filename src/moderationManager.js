@@ -5,6 +5,7 @@ const userWarnings = new Map();
 const WARNING_LIMIT = 3;
 const FLAGGED_ROLE_NAME = 'Flagged';
 
+// function for moderating appropriate chat
 async function moderateMessage(message, moderationEnabled) {
     if (!moderationEnabled)
         return false;

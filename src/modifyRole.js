@@ -1,3 +1,4 @@
+// function to add or remove role
 async function modifyRole(message, action) {
     // must be server manager to run this command
     if (!message.member.permissions.has('ManageRoles') && !message.member.permissions.has('Administrator')) {
