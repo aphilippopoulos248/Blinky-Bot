@@ -33,8 +33,14 @@ client.on('messageCreate', async (message) => {
         return;
     if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id))
         return;
-    if (!message.guild) 
+    if (!message.guild)
         return;
+
+    // typing effect
+    await message.channel.sendTyping();
+    const sendTypingInterval = setInterval(() => {
+        message.channel.sendTyping();
+    }, 5000);
 
     // clear all messages
     if (message.content === '!clear') {
@@ -50,13 +56,9 @@ client.on('messageCreate', async (message) => {
             console.error('Clear Error:', err);
             message.reply("❌ I couldn't delete messages.");
         }
+        clearInterval(sendTypingInterval);
+        return;
     }
-
-    // typing effect
-    await message.channel.sendTyping();
-    const sendTypingInterval = setInterval(() => {
-        message.channel.sendTyping();
-    }, 5000);
 
     // fetching user roles
     const roles = message.member.roles.cache
@@ -71,7 +73,8 @@ client.on('messageCreate', async (message) => {
         It participates in conversations and uses public usernames only to make replies more personal.
         It does not attempt to access or infer private user data. 
         Here are the current user's roles: [${roles.join(', ')}]. 
-        Only answer questions using this visible information.`
+        Only answer questions using this visible information.
+        Can manage server roles.`
     })
 
     // fetching previous messages to chatbot memory
@@ -95,6 +98,62 @@ client.on('messageCreate', async (message) => {
         });
     })
 
+    async function modifyRole(message, action) {
+        // action should be either 'add' or 'remove'
+        const parts = message.content.split('-');
+        if (parts.length !== 3) {
+            message.reply(`Incorrect command format. Use: !${action}role-username-roleName`);
+            clearInterval(sendTypingInterval);
+            return;
+        }
+
+        // splitting string into username and role name
+        const username = parts[1];
+        const roleName = parts[2];
+
+        // find member by username (case-sensitive)
+        const member = message.guild.members.cache.find(m => m.user.username === username);
+        if (!member) {
+            message.reply(`User "${username}" not found.`);
+            clearInterval(sendTypingInterval);
+            return;
+        }
+
+        // find role by name (case-insensitive)
+        const role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+        if (!role) {
+            message.reply(`Role named "${roleName}" not found.`);
+            clearInterval(sendTypingInterval);
+            return;
+        }
+
+        try {
+            if (action === 'add') {
+                await member.roles.add(role);
+                message.reply(`Role "${role.name}" added to user "${member.user.username}".`);
+            } else if (action === 'remove') {
+                await member.roles.remove(role);
+                message.reply(`Role "${role.name}" removed from user "${member.user.username}".`);
+            }
+        } catch (error) {
+            console.error(`Error ${action}ing role:`, error);
+            message.reply(`Failed to ${action} role. Check my permissions and role hierarchy.`);
+        }
+        clearInterval(sendTypingInterval);
+    }
+
+    // command to add role
+    if (message.content.startsWith('!addrole-')) {
+        await modifyRole(message, 'add');
+        return;
+    }
+
+    // command to remove role
+    if (message.content.startsWith('!removerole-')) {
+        await modifyRole(message, 'remove');
+        return;
+    }
+
     // using openai api key for chatbots model
     const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
@@ -116,6 +175,10 @@ client.on('messageCreate', async (message) => {
         const chunk = responseMessage.substring(i, i + chunkSizeLimit);
         await message.channel.send(chunk);
     }
+    // const botMember = message.guild.members.cache.get(client.user.id);
+    // const botPerms = message.channel.permissionsFor(botMember);
+
+    // console.log(`Bot permissions in channel "${message.channel.name}":`, botPerms.toArray());
 });
 
 // using discord bot api token
