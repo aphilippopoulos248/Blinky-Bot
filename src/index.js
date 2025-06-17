@@ -4,6 +4,7 @@ require('dotenv/config');
 // loading dependencies
 const { Client } = require('discord.js');
 const { OpenAI } = require('openai');
+const { moderateMessage } = require('./moderationManager');
 
 // client configuration
 const client = new Client({
@@ -82,7 +83,7 @@ client.on('messageCreate', async (message) => {
         }, 5000);
     }
 
-    // moderating vulgar speach
+    // enable or disable moderation commands
     if (message.content === '!enableModeration') {
         moderation = true;
         message.reply(`🚨 Moderation enabled`);
@@ -96,56 +97,9 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
-    const moderator = await openai.moderations.create({
-        input: message.content
-    });
-    const flagged = moderator.results[0].flagged;
-    const categories = moderator.results[0].categories;
-
-    if (moderation && flagged && categories.harassment) {
-        const userId = message.author.id;
-        const username = message.author.username;
-
-        // warning count
-        let warnings = userWarnings.get(userId) || 0;
-        warnings += 1;
-        userWarnings.set(userId, warnings);
-
-        // warning message
-        message.reply(`⚠️ Please avoid harassing language. This is warning ${warnings}.`);
-
-        // escalate action if warnings exceed threshold
-        if (warnings >= 3) {
-            const flaggedRoleName = 'Flagged';
-            let flaggedRole = message.guild.roles.cache.find(r => r.name.toLowerCase() === flaggedRoleName.toLowerCase());
-
-            // Create the role if it doesn't exist
-            if (!flaggedRole) {
-                try {
-                    flaggedRole = await message.guild.roles.create({
-                        name: flaggedRoleName,
-                        color: 'Red',
-                        reason: 'Assigned to users who surpassed harassment warnings'
-                    });
-                    console.log(`Created role "${flaggedRoleName}"`);
-                } catch (error) {
-                    console.error(`Failed to create role "${flaggedRoleName}":`, error);
-                    return;
-                }
-            }
-
-            // Assign the role to the offending member
-            try {
-                const member = message.guild.members.cache.get(userId);
-                if (!member.roles.cache.has(flaggedRole.id)) {
-                    await member.roles.add(flaggedRole);
-                    message.reply(`🚩 ${username} has been flagged. Further actions may be taken.`);
-                }
-            } catch (err) {
-                console.error(`Failed to flag ${username}:`, err);
-            }
-        }
-
+    // moderating vulgar speach
+    const moderationHandled = await moderateMessage(message, moderation);
+    if (moderationHandled) {
         clearInterval(sendTypingInterval);
         return;
     }
