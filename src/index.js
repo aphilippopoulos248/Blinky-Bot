@@ -16,7 +16,7 @@ client.on('ready', () => {
 });
 
 // constants
-const IGNORE_PREFIX = "#";
+const IGNORE_PREFIX = "#"; // symbol for bot to ignore message
 const CHANNELS = ['1384200248645259315'] // channel ids
 const BOT_NAME = 'Blinky'; // bots name
 
@@ -96,7 +96,26 @@ client.on('messageCreate', async (message) => {
             name: username,
             content: msg.content,
         });
-    })
+    });
+
+    // adding 'member' role to anyone who joins the server
+    client.on('guildMemberAdd', async (member) => {
+        const roleName = 'member';
+
+        // Find role by name (case-insensitive)
+        const role = member.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+        if (!role) {
+            console.error(`Role "${roleName}" not found in guild "${member.guild.name}"`);
+            return;
+        }
+
+        try {
+            await member.roles.add(role);
+            console.log(`Assigned role "${role.name}" to new member "${member.user.username}".`);
+        } catch (error) {
+            console.error(`Failed to assign role to ${member.user.username}:`, error);
+        }
+    });
 
     async function modifyRole(message, action) {
         // action should be either 'add' or 'remove'
@@ -140,19 +159,19 @@ client.on('messageCreate', async (message) => {
             message.reply(`Failed to ${action} role. Check my permissions and role hierarchy.`);
         }
         clearInterval(sendTypingInterval);
-    }
+    };
 
     // command to add role
     if (message.content.startsWith('!addrole-')) {
         await modifyRole(message, 'add');
         return;
-    }
+    };
 
     // command to remove role
     if (message.content.startsWith('!removerole-')) {
         await modifyRole(message, 'remove');
         return;
-    }
+    };
 
     // using openai api key for chatbots model
     const response = await openai.chat.completions.create({
