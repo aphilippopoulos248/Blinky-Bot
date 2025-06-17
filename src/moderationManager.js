@@ -6,16 +6,17 @@ const WARNING_LIMIT = 3;
 const FLAGGED_ROLE_NAME = 'Flagged';
 
 async function moderateMessage(message, moderationEnabled) {
-    if (!moderationEnabled) return false;
+    if (!moderationEnabled)
+        return false;
 
     // creating moderator
-    const moderator = await openai.moderations.create({ 
-        input: message.content 
+    const moderator = await openai.moderations.create({
+        input: message.content
     });
     const flagged = moderator.results[0].flagged;
     const categories = moderator.results[0].categories;
 
-    if (!flagged || !categories.harassment) 
+    if (!flagged || !categories.harassment)
         return false;
 
     // fetching user id and username
@@ -28,6 +29,26 @@ async function moderateMessage(message, moderationEnabled) {
     userWarnings.set(userId, warnings);
 
     await message.reply(`⚠️ Please avoid harassing language. This is warning ${warnings}.`);
+
+    // log to #warning-messages channel
+    let logChannel = message.guild.channels.cache.find(
+        ch => ch.name === 'warning-messages' && ch.isTextBased?.()
+    );
+
+    // create warning-messages if channel doesnt exist
+    if (!logChannel) {
+        try {
+            logChannel = await message.guild.channels.create({
+                name: 'warning-messages',
+                type: 0, // 0 = GUILD_TEXT
+                reason: 'Channel to log moderation warnings',
+            });
+            console.log('Created channel #warning-messages');
+        } catch (err) {
+            console.error('Failed to create log channel:', err);
+            return true;
+        }
+    }
 
     // if warnings exceeds warning limit
     if (warnings >= WARNING_LIMIT) {
@@ -61,6 +82,14 @@ async function moderateMessage(message, moderationEnabled) {
         } catch (err) {
             console.error(`Failed to assign flagged role to ${username}:`, err);
         }
+    }
+
+    try {
+        await logChannel.send({
+            content: `🚨 **Moderation Triggered**\n**User:** <@${userId}> (${username})\n**Message:** ${message.content}\n**Warnings:** ${warnings}`
+        });
+    } catch (err) {
+        console.error('Failed to log moderation message:', err);
     }
 
     return true;

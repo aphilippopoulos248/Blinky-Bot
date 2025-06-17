@@ -43,8 +43,17 @@ client.on('guildMemberAdd', async (member) => {
     // find welcome channel from id
     const welcomeChannel = member.guild.channels.cache.get(welcomeChannelId);
     if (!welcomeChannel || !welcomeChannel.isTextBased()) {
-        console.error(`Welcome channel "${welcomeChannel}" not found in server`);
-        return;
+        try {
+            welcomeChannel = await message.guild.channels.create({
+                name: 'welcome',
+                type: 0, // 0 = GUILD_TEXT
+                reason: 'Channel to welcome new users',
+            });
+            console.log('Created channel #welcome');
+        } catch (err) {
+            console.error('Failed to create welcome channel:', err);
+            return true;
+        }
     }
 
     try {
