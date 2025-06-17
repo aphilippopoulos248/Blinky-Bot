@@ -24,6 +24,12 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
 })
 
+// commands
+const addRoleCmd = '!addRole-';
+const removeRoleCmd = '!removeRole-';
+const enableModerationCmd = '!enableModeration'
+const disableModerationCmd = '!disableModeration'
+
 // parameters
 let moderation = false;
 
@@ -56,13 +62,13 @@ client.on('messageCreate', async (message) => {
     }
 
     // enable or disable moderation commands
-    if (message.content === '!enableModeration') {
+    if (message.content === enableModerationCmd) {
         moderation = true;
         message.reply(`🚨 Moderation enabled`);
         clearInterval(sendTypingInterval);
         return;
     }
-    else if (message.content === '!disableModeration') {
+    else if (message.content === disableModerationCmd) {
         moderation = false;
         message.reply(`🚫 Moderation disabled`);
         clearInterval(sendTypingInterval);
@@ -187,13 +193,13 @@ client.on('messageCreate', async (message) => {
     };
 
     // command to add role
-    if (message.content.startsWith('!addRole-')) {
+    if (message.content.startsWith(addRoleCmd)) {
         await modifyRole(message, 'add');
         return;
     };
 
     // command to remove role
-    if (message.content.startsWith('!removeRole-')) {
+    if (message.content.startsWith(removeRoleCmd)) {
         await modifyRole(message, 'remove');
         return;
     };
