@@ -25,7 +25,7 @@ module.exports = (client) => {
                 welcomeChannel = await member.guild.channels.create({
                     name: 'welcome',
                     type: 0, // GUILD_TEXT
-                    reason: 'Channel to welcome new users',
+                    reason: 'Channel for welcome and farewell messages',
                 });
                 console.log('Created channel #welcome');
             } catch (err) {
