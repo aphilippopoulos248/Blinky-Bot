@@ -40,8 +40,8 @@ client.on('guildMemberAdd', async (member) => {
         return;
     }
 
-    // find welcome channel from id
-    const welcomeChannel = member.guild.channels.cache.get(welcomeChannelId);
+    // find welcome channel from id or create welcome channel if it doesnt exist
+    let welcomeChannel = member.guild.channels.cache.get(welcomeChannelId);
     if (!welcomeChannel || !welcomeChannel.isTextBased()) {
         try {
             welcomeChannel = await message.guild.channels.create({
