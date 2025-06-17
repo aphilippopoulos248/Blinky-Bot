@@ -24,6 +24,38 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
 })
 
+// adding 'member' role to anyone who joins the server
+// welcoming new user to the server
+client.on('guildMemberAdd', async (member) => {
+    const roleName = 'member';
+    const welcomeChannelId = '1384585158455332967';
+
+    // Find role by name (case-insensitive)
+    const role = member.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+    if (!role) {
+        console.error(`Role "${roleName}" not found in guild "${member.guild.name}"`);
+        return;
+    }
+
+    // find welcome channel from id
+    const welcomeChannel = member.guild.channels.cache.get(welcomeChannelId);
+    if (!welcomeChannel || !welcomeChannel.isTextBased()) {
+        console.error(`Welcome channel "${welcomeChannel}" not found in server`);
+        return;
+    }
+
+    try {
+        await member.roles.add(role);
+        console.log(`Assigned role "${role.name}" to new member "${member.user.username}".`);
+        welcomeChannel.send(`🎉 Welcome to the server, <@${member.id}>`);
+    } catch (error) {
+        console.error(`Failed to assign role to ${member.user.username}:`, error);
+    }
+});
+
+// user warnings
+const userWarnings = new Map();
+
 // bot messaging functionality
 client.on('messageCreate', async (message) => {
     console.log(message.content);
@@ -41,6 +73,34 @@ client.on('messageCreate', async (message) => {
     const sendTypingInterval = setInterval(() => {
         message.channel.sendTyping();
     }, 5000);
+
+    // moderating vulgar speach
+    const moderation = await openai.moderations.create({
+        input: message.content
+    });
+    const flagged = moderation.results[0].flagged;
+    const categories = moderation.results[0].categories;
+
+    if (flagged && categories.harassment) {
+        const userId = message.author.id;
+        const username = message.author.username;
+
+        // warning count
+        let warnings = userWarnings.get(userId) || 0;
+        warnings += 1;
+        userWarnings.set(userId, warnings);
+
+        // warning message
+        message.reply(`⚠️ Please avoid harassing language. This is warning ${warnings}.`);
+
+        // escalate action if warnings exceed threshold
+        if (warnings >= 3) {
+            message.reply(`🚫 ${username} has reached the harassment warning limit. Further actions may be taken.`);
+        }
+
+        clearInterval(sendTypingInterval);
+        return;
+    }
 
     // clear all messages
     if (message.content === '!clear') {
@@ -96,35 +156,6 @@ client.on('messageCreate', async (message) => {
             name: username,
             content: msg.content,
         });
-    });
-
-    // adding 'member' role to anyone who joins the server
-    // welcoming new user to the server
-    client.on('guildMemberAdd', async (member) => {
-        const roleName = 'member';
-        const welcomeChannelId = '1384585158455332967';
-
-        // Find role by name (case-insensitive)
-        const role = member.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
-        if (!role) {
-            console.error(`Role "${roleName}" not found in guild "${member.guild.name}"`);
-            return;
-        }
-
-        // find welcome channel from id
-        const welcomeChannel = member.guild.channels.cache.get(welcomeChannelId);
-        if (!welcomeChannel || !welcomeChannel.isTextBased()) {
-            console.error(`Welcome channel "${welcomeChannel}" not found in server`);
-            return;
-        }
-
-        try {
-            await member.roles.add(role);
-            console.log(`Assigned role "${role.name}" to new member "${member.user.username}".`);
-            welcomeChannel.send(`🎉 Welcome to the server, <@${member.id}>`);
-        } catch (error) {
-            console.error(`Failed to assign role to ${member.user.username}:`, error);
-        }
     });
 
     async function modifyRole(message, action) {
