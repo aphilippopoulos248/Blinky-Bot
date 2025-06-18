@@ -81,7 +81,7 @@ async function moderateMessage(message, moderationEnabled) {
             const member = await message.guild.members.fetch(userId);
             if (!member.roles.cache.has(flaggedRole.id)) {
                 await member.roles.add(flaggedRole);
-                await message.reply(`🚩 ${username} has been flagged. Further actions may be taken.`);
+                await message.reply(`🚩 <@${userId}> has been flagged. Further actions may be taken.`);
             }
         } catch (err) {
             console.error(`Failed to assign flagged role to ${username}:`, err);
