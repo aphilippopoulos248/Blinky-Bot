@@ -87,7 +87,10 @@ async function moderateMessage(message, moderationEnabled) {
 
     try {
         await logChannel.send({
-            content: `🚨 **Moderation Triggered**\n**User:** <@${userId}> (${username})\n**Message:** ${message.content}\n**Warnings:** ${warnings}`
+            content: `🚨 **Moderation Triggered**
+            \n**User:** <@${userId}> (${username})
+            \n**Message:** ${message.content}
+            \n**Warnings:** ${warnings}`
         });
     } catch (err) {
         console.error('Failed to log moderation message:', err);
