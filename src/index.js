@@ -6,7 +6,6 @@ const { Client } = require('discord.js');
 const { OpenAI } = require('openai');
 const { moderateMessage } = require('./moderationManager');
 const { modifyRole } = require('./modifyRole');
-const addNewMemberRole = require('./addNewMemberRole');
 
 // client configuration
 const client = new Client({
@@ -35,16 +34,21 @@ const disableModerationCmd = '!disableModeration';
 const enableWelcomeCmd = '!enableWelcome';
 const disableWelcomeCmd = '!disableWelcome';
 const addNewMemberRoleCmd = '!addNewMemberRole';
+const removeNewMemberRoleCmd = '!removeNewMemberRole';
 
 // parameters
 let moderation = false;
 let welcome = false;
+let autoAddRole = false;
 
 // function to welcome new member
 const memberJoinedHandler = require('./memberJoined');
 if (welcome) {
     memberJoinedHandler(client);
 }
+
+const setupAutoRole  = require('./autoRoleManager.js');
+const autoRoleHandler = setupAutoRole(client);
 
 // bot messaging functionality
 client.on('messageCreate', async (message) => {
@@ -84,17 +88,28 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
-    // enable add role to new member
+    // Add role command
     if (message.content.startsWith(addNewMemberRoleCmd)) {
-        const parts = message.content.split('-');
-        const roleName = parts.slice(1).join('-').trim();
-
+        const roleName = message.content.split('-').slice(1).join('-').trim();
         if (!roleName) {
             return message.reply('❗ Please specify a role name. Example: `!addNewMemberRole-Member`');
         }
 
-        addNewMemberRole(client, roleName, message.guild.id);
-        await message.reply(`✅ New members will now be assigned the role: **${roleName}**`);
+        autoRoleHandler.enable(message.guild.id, roleName);
+        message.reply(`✅ New members will now be assigned the role: **${roleName}**`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
+    // Remove role command
+    if (message.content.startsWith(removeNewMemberRoleCmd)) {
+        const roleName = message.content.split('-').slice(1).join('-').trim();
+        if (!roleName) {
+            return message.reply('❗ Please specify a role name. Example: `!removeNewMemberRole-Member`');
+        }
+
+        autoRoleHandler.disable(message.guild.id, roleName);
+        message.reply(`❌ New members will no longer be assigned the role: **${roleName}**`);
         clearInterval(sendTypingInterval);
         return;
     }
