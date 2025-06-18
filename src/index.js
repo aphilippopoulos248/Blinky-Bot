@@ -6,6 +6,7 @@ const { Client } = require('discord.js');
 const { OpenAI } = require('openai');
 const { moderateMessage } = require('./moderationManager');
 const { modifyRole } = require('./modifyRole');
+const addNewMemberRole = require('./addNewMemberRole');
 
 // client configuration
 const client = new Client({
@@ -27,18 +28,19 @@ const openai = new OpenAI({
 
 // commands
 const clearCmd = '!clear';
-const addRoleCmd = '!addRole-';
-const removeRoleCmd = '!removeRole-';
+const addRoleCmd = '!addRole';
+const removeRoleCmd = '!removeRole';
 const enableModerationCmd = '!enableModeration';
 const disableModerationCmd = '!disableModeration';
 const enableWelcomeCmd = '!enableWelcome';
 const disableWelcomeCmd = '!disableWelcome';
+const addNewMemberRoleCmd = '!addNewMemberRole';
 
 // parameters
 let moderation = false;
 let welcome = false;
 
-// function for when a new user joins
+// function to welcome new member
 const memberJoinedHandler = require('./memberJoined');
 if (welcome) {
     memberJoinedHandler(client);
@@ -78,6 +80,21 @@ client.on('messageCreate', async (message) => {
     else if (message.content === disableWelcomeCmd) {
         welcome = false;
         message.reply(`😢 Welcome disabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
+    // enable add role to new member
+    if (message.content.startsWith(addNewMemberRoleCmd)) {
+        const parts = message.content.split('-');
+        const roleName = parts.slice(1).join('-').trim();
+
+        if (!roleName) {
+            return message.reply('❗ Please specify a role name. Example: `!addNewMemberRole-Member`');
+        }
+
+        addNewMemberRole(client, roleName, message.guild.id);
+        await message.reply(`✅ New members will now be assigned the role: **${roleName}**`);
         clearInterval(sendTypingInterval);
         return;
     }
