@@ -93,12 +93,13 @@ async function moderateMessage(message, moderationEnabled) {
                 .map((msg, idx) => `**${idx + 1}.** ${msg}`)
                 .join('\n');
             await logChannel.send({
-                content: `🚩 **User has been flagged**
-**User:** <@${userId}> (${username})
+                content: `🚩 **User has been Flagged**
+**User:** <@${userId}>
 **Warnings:** ${userData.count}
 **Flagged Messages:**
 ${combinedMessages}\n\n`
             });
+            userWarnings.delete(userId);
         } catch (err) {
             console.error('Failed to log moderation message:', err);
         }
@@ -108,8 +109,8 @@ ${combinedMessages}\n\n`
             await logChannel.send({
                 content: `🚨 **Moderation Triggered**
 **User:** <@${userId}>
-**Message:** ${message.content}
-**Warnings:** ${userData.count}\n\n`
+**Warnings:** ${userData.count}
+**Message:** ${message.content}\n\n`
             });
         } catch (err) {
             console.error('Failed to log moderation message:', err);
