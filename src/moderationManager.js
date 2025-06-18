@@ -17,8 +17,16 @@ async function moderateMessage(message, moderationEnabled) {
     const flagged = moderator.results[0].flagged;
     const categories = moderator.results[0].categories;
 
-    if (!flagged || !categories.harassment)
+    // filtered content
+    const isHarassment = categories.harassment;
+    const isNSFW = categories.sexual || categories["sexual/minors"];
+    const isHate = categories.hate || categories['hate/threatening'];
+    const isViolent = categories.violence || categories['violence/graphic'];
+    const isSelfHarm = categories['self-harm'];
+
+    if (!flagged || !(isHarassment || isNSFW || isHate || isViolent || isSelfHarm)) {
         return false;
+    }
 
     // fetching user id and username
     const userId = message.author.id;
