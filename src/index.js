@@ -19,7 +19,7 @@ client.on('ready', () => {
 
 // constants
 const BOT_NAME = 'Blinky'; // bots name
-const CHANNELS = ['1384200248645259315', '1384585158455332967'] // channel ids
+// const CHANNELS = ['1384200248645259315', '1384585158455332967'] // channel ids
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
@@ -51,8 +51,8 @@ client.on('messageCreate', async (message) => {
     // return conditions
     if (message.author.bot)
         return;
-    if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id))
-        return;
+    // if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id))
+    //     return;
     if (!message.guild)
         return;
 
