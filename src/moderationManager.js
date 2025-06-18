@@ -24,27 +24,30 @@ async function moderateMessage(message, moderationEnabled) {
     const userId = message.author.id;
     const username = message.author.username;
 
-    // managing warnings
-    let warnings = userWarnings.get(userId) || 0;
-    warnings++;
-    userWarnings.set(userId, warnings);
+    // user data model that manages warnings and saves flagged messages
+    let userData = userWarnings.get(userId) || { count: 0, messages: [] };
+    userData.count++;
+    if (userData.messages.length < WARNING_LIMIT) {
+        userData.messages.push(message.content);
+    }
+    userWarnings.set(userId, userData);
 
-    await message.reply(`⚠️ This message violates our server policies. Please avoid harassing language. This is warning ${warnings}.`);
+    await message.reply(`⚠️ This message violates our server policies. Please avoid harassing language. This is warning ${userData.count}.`);
 
-    // log to #warning-messages channel
+    // log to #moderation channel
     let logChannel = message.guild.channels.cache.find(
-        ch => ch.name === 'warning-messages' && ch.isTextBased?.()
+        ch => ch.name === 'moderation' && ch.isTextBased?.()
     );
 
     // create warning-messages if channel doesnt exist
     if (!logChannel) {
         try {
             logChannel = await message.guild.channels.create({
-                name: 'warning-messages',
+                name: 'moderation',
                 type: 0, // 0 = GUILD_TEXT
                 reason: 'Channel to log moderation warnings',
             });
-            console.log('Created channel #warning-messages');
+            console.log('Created channel #moderation');
         } catch (err) {
             console.error('Failed to create log channel:', err);
             return true;
@@ -52,7 +55,7 @@ async function moderateMessage(message, moderationEnabled) {
     }
 
     // if warnings exceeds warning limit
-    if (warnings >= WARNING_LIMIT) {
+    if (userData.count >= WARNING_LIMIT) {
         // fetching flagged role
         let flaggedRole = message.guild.roles.cache.find(
             r => r.name.toLowerCase() === FLAGGED_ROLE_NAME.toLowerCase()
@@ -83,17 +86,34 @@ async function moderateMessage(message, moderationEnabled) {
         } catch (err) {
             console.error(`Failed to assign flagged role to ${username}:`, err);
         }
-    }
 
-    try {
-        await logChannel.send({
-            content: `🚨 **Moderation Triggered**
-            \n**User:** <@${userId}> (${username})
-            \n**Message:** ${message.content}
-            \n**Warnings:** ${warnings}`
-        });
-    } catch (err) {
-        console.error('Failed to log moderation message:', err);
+        // log all first 3 flagged messages together
+        try {
+            let combinedMessages = userData.messages
+                .map((msg, idx) => `**${idx + 1}.** ${msg}`)
+                .join('\n');
+            await logChannel.send({
+                content: `🚩 **User has been flagged**
+**User:** <@${userId}> (${username})
+**Warnings:** ${userData.count}
+**Flagged Messages:**
+${combinedMessages}\n\n`
+            });
+        } catch (err) {
+            console.error('Failed to log moderation message:', err);
+        }
+    } else {
+        // If not at warning limit yet, log this warning as usual
+        try {
+            await logChannel.send({
+                content: `🚨 **Moderation Triggered**
+**User:** <@${userId}>
+**Message:** ${message.content}
+**Warnings:** ${userData.count}\n\n`
+            });
+        } catch (err) {
+            console.error('Failed to log moderation message:', err);
+        }
     }
 
     // delete the user's message
