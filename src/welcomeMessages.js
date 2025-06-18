@@ -4,6 +4,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY });
 let welcomeEnabled = false;
 
 module.exports = (client) => {
+    // when newcomers join the server
     client.on('guildMemberAdd', async (member) => {
         if (!welcomeEnabled) 
             return;
@@ -56,6 +57,7 @@ module.exports = (client) => {
         }
     });
 
+    // when newcomers leave the server
     client.on('guildMemberRemove', async (member) => {
         if (!welcomeEnabled) 
             return;
@@ -107,10 +109,12 @@ module.exports = (client) => {
     });
 
     return {
+        // function to enable welcome system
         enable: () => {
             welcomeEnabled = true;
             console.log('✅ Welcome system enabled');
         },
+        // function to disable welcome system
         disable: () => {
             welcomeEnabled = false;
             console.log('❌ Welcome system disabled');
