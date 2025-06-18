@@ -89,7 +89,7 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
-    // add role command
+    // add newcomer role command
     if (message.content.startsWith(addNewMemberRoleCmd)) {
         const roleName = message.content.split('-').slice(1).join('-').trim();
         if (!roleName) {
@@ -101,7 +101,7 @@ client.on('messageCreate', async (message) => {
         clearInterval(sendTypingInterval);
         return;
     }
-    // remove role command
+    // remove newcomer role command
     if (message.content.startsWith(removeNewMemberRoleCmd)) {
         const roleName = message.content.split('-').slice(1).join('-').trim();
         if (!roleName) {
@@ -113,7 +113,7 @@ client.on('messageCreate', async (message) => {
         clearInterval(sendTypingInterval);
         return;
     }
-    // view role command
+    // view newcomer role(s) command
     if (message.content === viewNewMemberRoleCmd) {
         const newMemberRoles = autoRoleHandler.list(message.guild.id);
         message.reply(`Here are the following roles assigned to newcomers: **${newMemberRoles}**`);
