@@ -35,6 +35,7 @@ const enableWelcomeCmd = '!enableWelcome';
 const disableWelcomeCmd = '!disableWelcome';
 const addNewMemberRoleCmd = '!addNewMemberRole';
 const removeNewMemberRoleCmd = '!removeNewMemberRole';
+const viewNewMemberRoleCmd = '!viewNewMemberRole';
 
 // parameters
 let moderation = false;
@@ -88,7 +89,7 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
-    // Add role command
+    // add role command
     if (message.content.startsWith(addNewMemberRoleCmd)) {
         const roleName = message.content.split('-').slice(1).join('-').trim();
         if (!roleName) {
@@ -100,8 +101,7 @@ client.on('messageCreate', async (message) => {
         clearInterval(sendTypingInterval);
         return;
     }
-
-    // Remove role command
+    // remove role command
     if (message.content.startsWith(removeNewMemberRoleCmd)) {
         const roleName = message.content.split('-').slice(1).join('-').trim();
         if (!roleName) {
@@ -110,6 +110,13 @@ client.on('messageCreate', async (message) => {
 
         autoRoleHandler.disable(message.guild.id, roleName);
         message.reply(`❌ New members will no longer be assigned the role: **${roleName}**`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+    // view role command
+    if (message.content === viewNewMemberRoleCmd) {
+        const newMemberRoles = autoRoleHandler.list(message.guild.id);
+        message.reply(`Here are the following roles assigned to newcomers: **${newMemberRoles}**`);
         clearInterval(sendTypingInterval);
         return;
     }
