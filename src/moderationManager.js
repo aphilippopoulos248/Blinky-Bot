@@ -7,8 +7,7 @@ const FLAGGED_ROLE_NAME = 'Flagged';
 
 // function for moderating appropriate chat
 async function moderateMessage(message, moderationEnabled) {
-    if (!moderationEnabled)
-        return false;
+    if (!moderationEnabled) return false;
 
     // creating moderator
     const moderator = await openai.moderations.create({

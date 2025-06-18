@@ -6,8 +6,7 @@ let welcomeEnabled = false;
 module.exports = (client) => {
     // when newcomers join the server
     client.on('guildMemberAdd', async (member) => {
-        if (!welcomeEnabled) 
-            return;
+        if (!welcomeEnabled) return;
 
         // finding welcome channel
         let welcomeChannel = member.guild.channels.cache.find(
@@ -59,8 +58,7 @@ module.exports = (client) => {
 
     // when newcomers leave the server
     client.on('guildMemberRemove', async (member) => {
-        if (!welcomeEnabled) 
-            return;
+        if (!welcomeEnabled) return;
 
         let welcomeChannel = member.guild.channels.cache.find(
             ch => ch.name === 'welcome' && ch.isTextBased?.()

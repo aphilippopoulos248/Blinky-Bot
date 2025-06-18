@@ -68,12 +68,9 @@ client.on('messageCreate', async (message) => {
     console.log(message.content);
 
     // return conditions
-    if (message.author.bot)
-        return;
-    // if (!message.mentions.users.has(client.user.id))
-    //     return;
-    if (!message.guild)
-        return;
+    if (message.author.bot) return;
+    // if (!message.mentions.users.has(client.user.id)) return;
+    if (!message.guild) return;
 
     // prefix needed to speak to speak to bot
     const botPrefix = message.content.startsWith('!');
@@ -227,8 +224,9 @@ client.on('messageCreate', async (message) => {
     prevMessages.reverse();
 
     prevMessages.forEach((msg) => {
-        if (msg.author.bot && msg.author.id !== client.user.id)
+        if (msg.author.bot && msg.author.id !== client.user.id){
             return;
+        } 
 
         // fetching bot and username of the user
         const isBot = msg.author.id === client.user.id;
