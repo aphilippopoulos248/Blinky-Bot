@@ -54,8 +54,8 @@ client.on('messageCreate', async (message) => {
     // return conditions
     if (message.author.bot)
         return;
-    // if (!CHANNELS.includes(message.channelId) && !message.mentions.users.has(client.user.id))
-    //     return;
+    if (!message.mentions.users.has(client.user.id))
+        return;
     if (!message.guild)
         return;
 
@@ -213,6 +213,7 @@ client.on('messageCreate', async (message) => {
         return;
     };
 
+    // bot only responds to messages with the botPrefix in front
     if (botPrefix) {
         // using openai api key for chatbots model
         const response = await openai.chat.completions.create({
