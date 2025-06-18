@@ -39,14 +39,10 @@ const viewNewMemberRoleCmd = '!viewNewMemberRole';
 
 // parameters
 let moderation = false;
-let welcome = false;
-let autoAddRole = false;
 
 // function to welcome new member
-const memberJoinedHandler = require('./memberJoined');
-if (welcome) {
-    memberJoinedHandler(client);
-}
+const setUpWelcome = require('./welcomeMessages.js');
+const welcomeHandler = setUpWelcome(client);
 
 const setupAutoRole  = require('./autoRoleManager.js');
 const autoRoleHandler = setupAutoRole(client);
@@ -77,13 +73,13 @@ client.on('messageCreate', async (message) => {
 
     // enable welcome messages
     if (message.content === enableWelcomeCmd) {
-        welcome = true;
+        welcomeHandler.enable();
         message.reply(`🤗 Welcome enabled`);
         clearInterval(sendTypingInterval);
         return;
     }
     else if (message.content === disableWelcomeCmd) {
-        welcome = false;
+        welcomeHandler.disable();
         message.reply(`😢 Welcome disabled`);
         clearInterval(sendTypingInterval);
         return;
@@ -120,6 +116,7 @@ client.on('messageCreate', async (message) => {
         clearInterval(sendTypingInterval);
         return;
     }
+
 
     // enable or disable moderation commands
     if (message.content === enableModerationCmd) {
