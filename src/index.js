@@ -130,11 +130,12 @@ client.on('messageCreate', async (message) => {
 
 
     // configuring chatbot personality and conversation
+    const userMention = `<@${message.author.id}>`;
     let conversation = [];
     conversation.push({
         role: 'system',
         content: `${BOT_NAME} is a helpful and friendly Discord bot developed by Alexander Philippopoulos using OpenAI's GPT model.
-        It participates in conversations and uses public usernames only to make replies more personal.
+        When addressing the user, refer to them as "${userMention}" to make replies more personal.
         It does not attempt to access or infer private user data. 
         Here are the current user's roles: [${roles.join(', ')}]. 
         Only answer questions using this visible information.
