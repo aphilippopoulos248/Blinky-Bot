@@ -29,7 +29,7 @@ async function moderateMessage(message, moderationEnabled) {
     warnings++;
     userWarnings.set(userId, warnings);
 
-    await message.reply(`⚠️ Please avoid harassing language. This is warning ${warnings}.`);
+    await message.reply(`⚠️ This message violates our server policies. Please avoid harassing language. This is warning ${warnings}.`);
 
     // log to #warning-messages channel
     let logChannel = message.guild.channels.cache.find(
@@ -91,6 +91,13 @@ async function moderateMessage(message, moderationEnabled) {
         });
     } catch (err) {
         console.error('Failed to log moderation message:', err);
+    }
+
+    // delete the user's message
+    try {
+        await message.delete();
+    } catch (err) {
+        console.error(`Failed to delete message from ${message.author.username}:`, err);
     }
 
     return true;
