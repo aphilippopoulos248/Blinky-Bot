@@ -25,6 +25,22 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_KEY
 })
 
+// authorized roles for commands
+const authorizedCmdRoles = ['Admin', 'Moderator'];
+function userHasAuthorizedRole(member, roles) {
+    return member.roles.cache.some(role =>
+        roles.includes(role.name) || role.permissions.has('Administrator')
+    );
+}
+function checkUserAuthorization(message, sendTypingInterval) {
+    if (!userHasAuthorizedRole(message.member, authorizedCmdRoles)) {
+        message.reply("⛔ You don't have permission to use this command.");
+        clearInterval(sendTypingInterval);
+        return false;
+    }
+    return true;
+}
+
 // commands
 const clearCmd = '!clear';
 const addRoleCmd = '!addRole';
@@ -44,7 +60,7 @@ let moderation = false;
 const setUpWelcome = require('./welcomeMessages.js');
 const welcomeHandler = setUpWelcome(client);
 
-const setupAutoRole  = require('./autoRoleManager.js');
+const setupAutoRole = require('./autoRoleManager.js');
 const autoRoleHandler = setupAutoRole(client);
 
 // bot messaging functionality
@@ -54,8 +70,8 @@ client.on('messageCreate', async (message) => {
     // return conditions
     if (message.author.bot)
         return;
-    if (!message.mentions.users.has(client.user.id))
-        return;
+    // if (!message.mentions.users.has(client.user.id))
+    //     return;
     if (!message.guild)
         return;
 
@@ -71,77 +87,12 @@ client.on('messageCreate', async (message) => {
         }, 5000);
     }
 
-    // enable welcome messages
-    if (message.content === enableWelcomeCmd) {
-        welcomeHandler.enable();
-        message.reply(`🤗 Welcome enabled`);
-        clearInterval(sendTypingInterval);
-        return;
-    }
-    else if (message.content === disableWelcomeCmd) {
-        welcomeHandler.disable();
-        message.reply(`😢 Welcome disabled`);
-        clearInterval(sendTypingInterval);
-        return;
-    }
-
-    // add newcomer role command
-    if (message.content.startsWith(addNewMemberRoleCmd)) {
-        const roleName = message.content.split('-').slice(1).join('-').trim();
-        if (!roleName) {
-            return message.reply('❗ Please specify a role name. Example: `!addNewMemberRole-Member`');
-        }
-
-        autoRoleHandler.enable(message.guild.id, roleName);
-        message.reply(`✅ New members will now be assigned the role: **${roleName}**`);
-        clearInterval(sendTypingInterval);
-        return;
-    }
-    // remove newcomer role command
-    if (message.content.startsWith(removeNewMemberRoleCmd)) {
-        const roleName = message.content.split('-').slice(1).join('-').trim();
-        if (!roleName) {
-            return message.reply('❗ Please specify a role name. Example: `!removeNewMemberRole-Member`');
-        }
-
-        autoRoleHandler.disable(message.guild.id, roleName);
-        message.reply(`❌ New members will no longer be assigned the role: **${roleName}**`);
-        clearInterval(sendTypingInterval);
-        return;
-    }
-    // view newcomer role(s) command
-    if (message.content === viewNewMemberRoleCmd) {
-        const newMemberRoles = autoRoleHandler.list(message.guild.id);
-        message.reply(`Here are the following roles assigned to newcomers: **${newMemberRoles}**`);
-        clearInterval(sendTypingInterval);
-        return;
-    }
-
-
-    // enable or disable moderation commands
-    if (message.content === enableModerationCmd) {
-        moderation = true;
-        message.reply(`🚨 Moderation enabled`);
-        clearInterval(sendTypingInterval);
-        return;
-    }
-    else if (message.content === disableModerationCmd) {
-        moderation = false;
-        message.reply(`🚫 Moderation disabled`);
-        clearInterval(sendTypingInterval);
-        return;
-    }
-
-    // moderating vulgar speach
-    const moderationHandled = await moderateMessage(message, moderation);
-    if (moderationHandled) {
-        clearInterval(sendTypingInterval);
-        return;
-    }
-
+    //#region 
+    // all authorized commands
 
     // clear all messages
     if (message.content === clearCmd) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
         const channel = message.channel;
         try {
             const messages = await channel.messages.fetch();
@@ -154,6 +105,97 @@ client.on('messageCreate', async (message) => {
             console.error('Clear Error:', err);
             message.reply("❌ I couldn't delete messages.");
         }
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
+    // enable and disable welcome messages
+    if (message.content === enableWelcomeCmd) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        welcomeHandler.enable();
+        message.reply(`🤗 Welcome enabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+    if (message.content === disableWelcomeCmd) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        welcomeHandler.disable();
+        message.reply(`😢 Welcome disabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
+    // add newcomer role command
+    if (message.content.startsWith(addNewMemberRoleCmd)) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        const roleName = message.content.split('-').slice(1).join('-').trim();
+        if (!roleName) {
+            return message.reply('❗ Please specify a role name. Example: `!addNewMemberRole-Member`');
+        }
+
+        autoRoleHandler.enable(message.guild.id, roleName);
+        message.reply(`✅ New members will now be assigned the role: **${roleName}**`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+    // remove newcomer role command
+    if (message.content.startsWith(removeNewMemberRoleCmd)) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        const roleName = message.content.split('-').slice(1).join('-').trim();
+        if (!roleName) {
+            return message.reply('❗ Please specify a role name. Example: `!removeNewMemberRole-Member`');
+        }
+
+        autoRoleHandler.disable(message.guild.id, roleName);
+        message.reply(`❌ New members will no longer be assigned the role: **${roleName}**`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+    // view newcomer role(s) command
+    if (message.content === viewNewMemberRoleCmd) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        const newMemberRoles = autoRoleHandler.list(message.guild.id);
+        message.reply(`Here are the following roles assigned to newcomers: **${newMemberRoles}**`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
+
+    // enable or disable moderation commands
+    if (message.content === enableModerationCmd) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        moderation = true;
+        message.reply(`🚨 Moderation enabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+    if (message.content === disableModerationCmd) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        moderation = false;
+        message.reply(`🚫 Moderation disabled`);
+        clearInterval(sendTypingInterval);
+        return;
+    }
+
+    // command to add or remove role
+    if (message.content.startsWith(addRoleCmd)) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        await modifyRole(message, 'add');
+        clearInterval(sendTypingInterval);
+        return;
+    };
+    if (message.content.startsWith(removeRoleCmd)) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        await modifyRole(message, 'remove');
+        clearInterval(sendTypingInterval);
+        return;
+    };
+    //#endregion
+
+
+    // moderating vulgar speach
+    const moderationHandled = await moderateMessage(message, moderation);
+    if (moderationHandled) {
         clearInterval(sendTypingInterval);
         return;
     }
@@ -198,20 +240,6 @@ client.on('messageCreate', async (message) => {
             content: msg.content,
         });
     });
-
-    // command to add role
-    if (message.content.startsWith(addRoleCmd)) {
-        await modifyRole(message, 'add');
-        clearInterval(sendTypingInterval);
-        return;
-    };
-
-    // command to remove role
-    if (message.content.startsWith(removeRoleCmd)) {
-        await modifyRole(message, 'remove');
-        clearInterval(sendTypingInterval);
-        return;
-    };
 
     // bot only responds to messages with the botPrefix in front
     if (botPrefix) {
