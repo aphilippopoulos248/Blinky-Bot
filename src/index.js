@@ -43,6 +43,7 @@ function checkUserAuthorization(message, sendTypingInterval) {
 
 // commands
 const clearCmd = '!clear';
+const botStatusCmd = '!botStatus';
 const addRoleCmd = '!addRole';
 const removeRoleCmd = '!removeRole';
 const enableModerationCmd = '!enableModeration';
@@ -55,6 +56,7 @@ const viewNewMemberRoleCmd = '!viewNewMemberRole';
 
 // parameters
 let moderation = false;
+let welcome = false;
 
 // function to welcome new member
 const setUpWelcome = require('./welcomeMessages.js');
@@ -106,10 +108,27 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
+    // check bot status
+    if (message.content === botStatusCmd) {
+        if (!checkUserAuthorization(message, sendTypingInterval)) return;
+        try {
+            message.reply(`**My Status** 
+Moderation: ${moderation ? '✅' : '❌'}
+Welcome: ${welcome ? '✅' : '❌'}
+                `);
+            clearInterval(sendTypingInterval);
+            return;
+        } catch (err) {
+            console.error('Status Error:', err);
+            message.reply("❌ I can't open my status.");
+        }
+    }
+
     // enable and disable welcome messages
     if (message.content === enableWelcomeCmd) {
         if (!checkUserAuthorization(message, sendTypingInterval)) return;
         welcomeHandler.enable();
+        welcome = true;
         message.reply(`🤗 Welcome enabled`);
         clearInterval(sendTypingInterval);
         return;
@@ -117,6 +136,7 @@ client.on('messageCreate', async (message) => {
     if (message.content === disableWelcomeCmd) {
         if (!checkUserAuthorization(message, sendTypingInterval)) return;
         welcomeHandler.disable();
+        welcome = false;
         message.reply(`😢 Welcome disabled`);
         clearInterval(sendTypingInterval);
         return;
