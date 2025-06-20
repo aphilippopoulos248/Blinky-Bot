@@ -5,7 +5,7 @@ Blinky is a discord bot that moderates messages and welcomes newcomers to the se
 
 # Screenshots
 <img width="468" alt="Screenshot 2025-06-19 230921" src="https://github.com/user-attachments/assets/e11472ad-d9c2-48c9-8fdb-48e7e62c0d64" />
-
+<br>
 <img width="220" alt="Screenshot 2025-06-19 231139" src="https://github.com/user-attachments/assets/bd9b8766-e883-4413-ab95-c805b08391fd" />
 
 # How to use
