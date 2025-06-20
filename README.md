@@ -4,9 +4,9 @@
 Blinky is a discord bot that moderates messages and welcomes newcomers to the server. Blinky uses OpenAI's GTP-3.5-Turbo model to generate proper responses to those who communicate with the bot. 
 
 # Screenshots
-<img width="220" alt="Screenshot 2025-06-19 231139" src="https://github.com/user-attachments/assets/bd9b8766-e883-4413-ab95-c805b08391fd" />
-
 <img width="468" alt="Screenshot 2025-06-19 230921" src="https://github.com/user-attachments/assets/e11472ad-d9c2-48c9-8fdb-48e7e62c0d64" />
+
+<img width="220" alt="Screenshot 2025-06-19 231139" src="https://github.com/user-attachments/assets/bd9b8766-e883-4413-ab95-c805b08391fd" />
 
 # How to use
 1. Invite Blinky to your discord server with this link: https://discord.com/oauth2/authorize?client_id=1384194839754707024&permissions=1476405296&integration_type=0&scope=bot+applications.commands
