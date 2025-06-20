@@ -1,7 +1,7 @@
 # Blinky the Discord Bot
 ![Blinky_stock_art_sprite](https://github.com/user-attachments/assets/b0150447-4e00-4442-8177-bf5de978d524)
 
-Blinky is a discord bot that moderates messages and welcomes newcomers to the server. Blinky uses OpenAI's GTP-3.5-Turbo model to generate proper responses to those who communicate with the bot. If you want a bot that is both fun to talk to and a good moderator, this is the one for you. Unlike Dyno, Blinky does not automatically kick users. It instead logs the messages that have been flagged for human moderators to examine and deem if the user reponsible for the messages should be kicked. This is great for moderators who are tired at constantly looking at every chat, since Blinky logs the messages in a 'moderation' chat.
+Blinky is a discord bot that moderates messages and welcomes newcomers to the server. Blinky uses OpenAI's GTP-3.5-Turbo model to generate proper responses to those who communicate with the bot. If you want a bot that is both fun to talk to and a good moderator, this is the one for you. Unlike Dyno, Blinky does not automatically kick users. It instead logs the messages that have been flagged for human moderators to examine and deem if the user reponsible for the messages should be kicked. The reason for this is because bots do not understand context the way humans do, so this prevents the bot from kicking users that may have said something that may seem harsh, but isn't harsh under certain context. This is great for moderators who are tired at constantly looking at every chat, since Blinky logs the messages in a 'moderation' chat.
 
 # Screenshots
 <img width="468" alt="Screenshot 2025-06-19 230921" src="https://github.com/user-attachments/assets/e11472ad-d9c2-48c9-8fdb-48e7e62c0d64" />
