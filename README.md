@@ -7,6 +7,15 @@ Blinky is a discord bot that moderates messages and welcomes newcomers to the se
 <img width="468" alt="Screenshot 2025-06-19 230921" src="https://github.com/user-attachments/assets/e11472ad-d9c2-48c9-8fdb-48e7e62c0d64" />
 <br>
 <img width="220" alt="Screenshot 2025-06-19 231139" src="https://github.com/user-attachments/assets/bd9b8766-e883-4413-ab95-c805b08391fd" />
+<br>
+<img width="479" alt="Screenshot 2025-06-19 231627" src="https://github.com/user-attachments/assets/0023e3a8-3ccf-4c8f-b4a7-fe1bc70710a8" />
+<br>
+<img width="260" alt="Screenshot 2025-06-19 231724" src="https://github.com/user-attachments/assets/5f7c3eee-ce26-4eaa-9b8d-1a2c05991d3e" />
+<br>
+<img width="205" alt="Screenshot 2025-06-19 231830" src="https://github.com/user-attachments/assets/835acebd-22fc-4453-b134-256b721a769f" />
+<br>
+<img width="386" alt="Screenshot 2025-06-19 231916" src="https://github.com/user-attachments/assets/3c370a69-6f2c-428a-ae5d-db485616bc2d" />
+
 
 # How to use
 1. Invite Blinky to your discord server with this link: https://discord.com/oauth2/authorize?client_id=1384194839754707024&permissions=1476405296&integration_type=0&scope=bot+applications.commands
