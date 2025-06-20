@@ -12,6 +12,7 @@ Blinky is a discord bot that moderates messages and welcomes newcomers to the se
 # Commands
 Heres a list of the following commands for Blinky:
 
+
 !clear: clears all messages in a channel
 
 !enableModeration: enables bot moderation
@@ -27,6 +28,7 @@ Heres a list of the following commands for Blinky:
 !removeNewMemberRole-"Role Name": removes an existing role to newcomers that join the server
 
 !viewNewMemberRole: displays a list of all roles that are assigned to newcomers that join the server 
+
 
 These commands can only be used by Administrators and authorized users
 
