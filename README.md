@@ -1,4 +1,5 @@
 # Blinky the Discord Bot
+![Blinky_stock_art_sprite](https://github.com/user-attachments/assets/b0150447-4e00-4442-8177-bf5de978d524)
 Blinky is a discord bot that moderates messages and welcomes newcomers to the server. Blinky uses OpenAi's GTP-3.5-Turbo model to generate proper responses to those who communicate with the bot. 
 
 # How to use
